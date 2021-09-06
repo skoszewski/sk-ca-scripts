@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+if [ -z "$CONFNAME" ]
+then
+	echo "ERROR: Configuration name not provided."
+	exit 1
+fi
+
+REQFILE="$CA_ROOT/requests/$CONFNAME.pem"
+
+if [ ! -f "$REQFILE" ]; then
+	echo "ERROR: Request file does not exist."
+	exit 1
+fi
+
+CONFSECT=$2
+
+case $CONFSECT in
+	server) EXTSECT=v3_server ;;
+	client) EXTSECT=v3_client ;;
+	*) EXTSECT=v3_server ;;
+esac
+
+CERTFILE="$CA_ROOT/certs/$CONFNAME.pem"
+
+# Remove the old certificate, if exists
+if [ -f $CERTFILE ]
+then
+	rm -f $CERFILE
+fi
+
+# Sign request
+if openssl ca -in $REQFILE -extensions ${EXTSECT} -out $CERTFILE -config $CA_CONF
+then
+	# Check if the certificate has been created
+	if [ -s $CERTFILE ]
+	then
+		# Remove request
+		rm -f $REQFILE
+	fi
+else
+	echo "ERROR: Something went wrong"
+	exit 1
+fi

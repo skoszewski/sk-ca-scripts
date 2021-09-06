@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+if [ -z "$CONFNAME" ]
+then
+	echo "ERROR: Configuration name not provided."
+	exit 1
+fi
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+
+if [ ! -f $CONFFILE ]
+then
+	echo "ERROR: Configuration file does not exist."
+	exit 1
+fi
+
+shift
+
+REASON=$1
+
+if [ -z "$REASON" ]; then
+	REASON="superseded"
+fi
+
+CERTFILE="$CA_ROOT/certs/${CONFNAME}.pem"
+
+SUBJ=`openssl x509 -in $CERTFILE -noout -subject`
+echo "You are going to revoke certificate issued for: \"$SUBJ\"."
+
+read -p "Are you sure? " x
+echo $x | grep -qv '^[yY]' && exit 1
+
+if openssl ca -revoke $CERTFILE -config $CA_CONF -crl_reason $REASON
+then
+	echo "The certificate for $SUBJ has been revoked."
+
+	# Remove the certificate files. Leave the configuration file.
+	for file in $CERTFILE "$CA_ROOT/private/${CONFNAME}-key.pem" "$CA_ROOT/certs/${CONFNAME}.p12" "$CA_ROOT/private/${CONFNAME}-pass.txt"
+	do
+		if [ -f $file ]
+		then
+			rm -f $file
+		fi
+	done
+
+	# Update the CRL
+	openssl ca -gencrl -config $CA_CONF -out "$CA_ROOT/crl/crl-$(date +%Y-%m-%d).pem"
+else
+	echo "ERROR: Something went wrong. The certificate has not been revoked."
+	exit 1
+fi

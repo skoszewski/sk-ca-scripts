@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+if [ -z "$CONFNAME" ]
+then
+	echo "ERROR: Configuration name not provided."
+	exit 1
+fi
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+
+if [ ! -f $CONFFILE ]
+then
+	echo "ERROR: Configuration file does not exist."
+	exit 1
+fi
+
+KEYFILE="$CA_ROOT/private/${CONFNAME}-key.pem"
+REQFILE="$CA_ROOT/requests/${CONFNAME}.pem"
+CERTFILE="$CA_ROOT/certs/${CONFNAME}.pem"
+
+if ! openssl genrsa -out $KEYFILE 2048
+then
+	echo "ERROR: Something went wrong, key not created."
+	exit 1
+fi
+
+if ! openssl req -new -key $KEYFILE -out $REQFILE -config $CONFFILE
+then
+	echo "ERROR: Something went wrong, request not created."
+	exit 1
+fi
+
+# Remove the old certificate
+if [ -f $CERTFILE ]
+then
+	rm -f $CERTFILE
+fi
+
+# Show the request
+echo "The request has been created: \"$REQFILE\"."
+echo
+
+openssl req -noout -text -in $REQFILE

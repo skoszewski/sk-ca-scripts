@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+BACKUP_FILE=$1
+PASSFILE=$2
+CA_ROOT=$3
+
+if [[ -z $BACKUP_FILE || -z $PASSFILE || -z $CA_ROOT || ( ! -f $BACKUP_FILE ) || ( ! -f $PASSFILE ) || ( ! -d $CA_ROOT ) ]]
+then
+    echo "Usage: $0 <backup file> <password file> <ca root folder>"
+    exit 1
+fi
+
+# Decrypt and untar the backup
+gpg --decrypt --batch --cipher-algo=AES256 --passphrase-file $PASSFILE $BACKUP_FILE | ( cd $CA_ROOT; tar x )
+
+echo "Backup restored. Remeber to copy backup password file or the new one will be created."

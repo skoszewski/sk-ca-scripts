@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+
+if [ -z "$CONFNAME" ]; then
+    echo "ERROR: Configuration name not provided."
+    exit 1
+fi
+
+shift
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+
+# Read certificate subject from command line.
+CN=$1
+EMAIL=$2
+
+if [ -z "$CN" -o -z "$EMAIL" ]
+then
+    echo "Usage: $0 {configuration name} {Subject Name} {Subject E-mail}"
+    exit 1
+fi
+
+# Compose main sections
+cat > $CONFFILE <<EOF
+[ req ]
+distinguished_name = req_dn
+prompt = no
+
+[ req_dn ]
+CN                 = $CN
+emailAddress       = $EMAIL
+
+# These attributes are optional
+#OU                 = Organizational Unit Name
+#O                  = Optional organization name
+#L                  = Optional city name
+#ST                 = State or Province
+#C                  = Optional country code, e.g. PL
+EOF
+
+echo "Configuration file has been created: \"$CONFFILE\"."
+
+echo "============================================================"
+cat $CONFFILE
+echo "============================================================"
+
+echo "Edit it to change certificate attributes."

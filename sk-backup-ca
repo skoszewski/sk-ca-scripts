@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+if [ ! -d "$CA_ROOT/backups" ]
+then
+    mkdir "$CA_ROOT/backups"
+fi
+
+PASSFILE="$CA_ROOT/backup-encryption-key.txt"
+
+if [ ! -f $PASSFILE ]
+then
+    touch $PASSFILE
+    chmod 0600 $PASSFILE
+    openssl rand -base64 2048 >> $PASSFILE
+fi
+
+BACKUP_FILE="$CA_ROOT/backups/$CA_SHORTNAME-$(date +%Y-%m-%d).gpg"
+
+# Backup CA files excluding the backup directory itself and the encryption key.
+# NOTE: Remember to backup the key in the same place.
+(cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE

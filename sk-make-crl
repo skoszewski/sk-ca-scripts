@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+openssl ca -gencrl -config $CA_CONF -out "$CA_ROOT/crl/crl-$(date +%Y-%m-%d).pem"

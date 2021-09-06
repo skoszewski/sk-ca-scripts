@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+if [ -z "$CONFNAME" ]
+then
+	echo "ERROR: Configuration name not provided."
+	exit 1
+fi
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+
+if [ ! -f $CONFFILE ]
+then
+	echo "ERROR: Configuration file does not exist."
+	exit 1
+fi
+
+KEYFILE="$CA_ROOT/private/${CONFNAME}-key.pem"
+CERTFILE="$CA_ROOT/certs/${CONFNAME}.pem"
+P12FILE="$CA_ROOT/certs/${CONFNAME}.p12"
+PASSFILE="$CA_ROOT/private/${CONFNAME}-pass.txt"
+
+# Make PKCS #12 file
+if [ ! -f $KEYFILE -o ! -f $CERTFILE ]
+then
+    echo "ERROR: A key and/or certificate file does not exist."
+    exit 1
+fi
+
+read -p "Do you want to provide you own export password for the PCKS#12 file? " ans
+
+if echo $ans | grep -q '^[yY]'
+then
+    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -certfile "$CA_ROOT/certs/ca.pem" -name "$CONFNAME" -out $P12FILE
+else
+    if [ -f $PASSFILE ]; then rm -f $PASSFILE; fi
+    touch $PASSFILE
+    chmod 0600 $PASSFILE
+    openssl rand -base64 12 >> $PASSFILE
+    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -passout file:$PASSFILE -certfile "$CA_ROOT/certs/ca.pem" -name "$CONFNAME" -out $P12FILE
+
+    echo "The password for \"$P12FILE\" is \"$(cat $PASSFILE)\"."
+    echo ""
+fi
