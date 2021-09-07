@@ -89,7 +89,7 @@ Create a PKCS#12 file.
 sk-make-pkcs12 <name>
 ```
 
-> NOTE: You will be asked if you want to provide your own password to protect private key data. If you will answer no or do not provide any input the script will generate random 12-character password and store it along side with the private key. The password will be stored in clear text and protected only by file system permissions (read-write only by owner).
+> NOTE: You will be asked if you want to provide your own password to protect private key data. If you answer no or do not provide any input the script will generate random 12-character password and store it along side with the private key. The password will be stored in clear text and protected only by file system permissions (read-write only by owner).
 
 If you want to change the default certificate options and attributes you are free to modify the `ca.conf` configuration file or genrated configuration files stored in `configs` folder. The following scripts are meant to be used in advanced scenarios:
 
