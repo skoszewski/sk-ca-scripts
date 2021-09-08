@@ -27,3 +27,5 @@ BACKUP_FILE="$CA_ROOT/backups/$CA_SHORTNAME-$(date +%Y-%m-%d).gpg"
 # Backup CA files excluding the backup directory itself and the encryption key.
 # NOTE: Remember to backup the key in the same place.
 (cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
+
+echo "The backup file has been created: $BACKUP_FILE."
