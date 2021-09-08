@@ -117,3 +117,25 @@ sk-restore-ca <path-to-backup-file> <path-to-secret-key-file> <path-to-new-ca-ro
 ```
 
 Copy the old secret key file to the new root CA folder if you want to reuse it.
+
+## Upload the backup to the Azure BLOB storage
+
+Use provided `sk-upload-to-azure` or `sk-upload-to-azure.ps1` scripts to upload the backup file to Azure blob storage.
+
+Run the Bash script:
+
+```
+sk-upload-to-azure <path-to-backup-file> <resource group> <storage account> <container>
+```
+
+or set shell environment variables: `STORAGE_ACCOUNT`, `CONTAINER` and `SAS_TOKEN` and run it with less parameters:
+
+```
+sk-upload-to-azure <path-to-backup-file>
+```
+
+Alternatively, use PowerShell
+
+```powershell
+sk-upload-to-azure.ps1 -Path <string> -ResourceGroup <string> -StorageAccount <string> -Container <string>
+```
