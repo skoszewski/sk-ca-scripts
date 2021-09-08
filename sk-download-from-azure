@@ -2,7 +2,7 @@
 # vim: ts=4:sw=4:noet:ai
 
 usage() {
-    echo -e "Usage:\t$0 <backup file path> [<resource group>] [<storage account>] [<containter>]"
+    echo -e "Usage:\t$0 <destination location> [<resource group>] [<storage account>] [<containter>]"
     echo
     echo -e "\tYou have to specify account information either as parameters or in shell environment variables."
     echo -e "\tDefine and export STORAGE_ACCOUNT, CONTAINER and SAS_TOKEN variables."
@@ -10,13 +10,21 @@ usage() {
 
 BACKUP_FILE=$1
 
-if [ -z $BACKUP_FILE ] || [ ! -f $BACKUP_FILE ]
+if [ -z $BACKUP_FILE ]
 then
     usage
     exit 1
 fi
 
 FILENAME=$(basename $BACKUP_FILE)
+DESTINATION_FOLDER=$(dirname $BACKUP_FILE)
+
+if [ ! -d $DESTINATION_FOLDER ]
+then
+    usage
+    exit 1
+fi
+
 shift
 
 # Check if the account information has been provided in the command line.
@@ -32,16 +40,16 @@ then
     # Calculate and format expiry time
     EXPIRY_TIME=$(date -u -d "15 minute" '+%Y-%m-%dT%H:%MZ')
 
-    # Get full file manipulation Uri. Request CREATE permission only, it will prevent overwriting an existing blob.
-    URI=$(az storage blob generate-sas --account-name $STORAGE_ACCOUNT --account-key $ACCOUNT_KEY --container-name $CONTAINER --name $FILENAME --permissions c --expiry $EXPIRY_TIME --full-uri --output tsv)
+    # Get Blob download uri with the SAS token
+    URI=$(az storage blob generate-sas --account-name $STORAGE_ACCOUNT --account-key $ACCOUNT_KEY --container-name $CONTAINER --name $FILENAME --permissions r --expiry $EXPIRY_TIME --full-uri --output tsv)
 elif [ "$SAS_TOKEN" -a "$STORAGE_ACCOUNT" -a "$CONTAINER" ]
 then
-    # Construct URI
+    # Construct URI from shell variables
     URI="https://$STORAGE_ACCOUNT.blob.core.windows.net/$CONTAINER/$FILENAME?$SAS_TOKEN"
 else
     usage
     exit 1
 fi
 
-# Upload the file.
-curl -# -X PUT -T $BACKUP_FILE -H "x-ms-blob-type: BlockBlob" $URI
+# Download the file.
+curl -o "$DESTINATION_FOLDER/$FILENAME" $URI
