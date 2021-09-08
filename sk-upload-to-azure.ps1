@@ -10,8 +10,7 @@ if(!(Test-Path -Path $Path -PathType Leaf)) {
     throw "$Path does not exist."
 }
 
-$file = Get-ChildItem -Path $Path
-$FileName = $file.BaseName + $file.Extension
+$FileName = Split-Path $Path -Leaf
 
 # Check, if the account has been selected using the script parameters
 if ($ResourceGroup -and $StorageAccount -and $Container) {
@@ -30,7 +29,7 @@ if ($ResourceGroup -and $StorageAccount -and $Container) {
         throw "Azure BLOB container information must be defined in environment variables: SAS_TOKEN, STORAGE_ACCOUNT and CONTAINER."
     }
 
-    $Uri = "https://$env:STORAGE_ACCOUNT.blob.core.windows.net/$env:CONTAINER/$($file.BaseName + $file.Extension)?$env:SAS_TOKEN"
+    $Uri = "https://$env:STORAGE_ACCOUNT.blob.core.windows.net/$env:CONTAINER/$FileName?$env:SAS_TOKEN"
 }
 
 # Upload the file and discard the output. Exceptions will provide error information.
