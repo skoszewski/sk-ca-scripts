@@ -178,9 +178,6 @@ echo 01 > "$CA_ROOT/serial"
 mkdir -m 755 "$CA_ROOT/newcerts" "$CA_ROOT/certs" "$CA_ROOT/requests" "$CA_ROOT/configs" "$CA_ROOT/crl"
 mkdir -m 750 "$CA_ROOT/private"
 
-# Write .rnd file
-openssl rand -writerand $CA_ROOT/.rnd
-
 # Generate a key
 openssl genrsa -out "$CA_ROOT/private/ca-key.pem" 4096
 
