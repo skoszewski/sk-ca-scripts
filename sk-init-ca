@@ -23,7 +23,7 @@ fi
 CA_ROOT=$( cd $CA_ROOT; echo $(pwd))
 
 # Check, if the selected folder contains the CA structure
-for f in env.sh index.txt serial newcerts certs private ca.conf configs requests
+for f in env.sh index.txt serial newcerts certs private configs requests
 do
     if [ -e $f ];
     then
@@ -43,8 +43,8 @@ echo -n "Enter a locality (City name): "; read LOCALITY
 echo -n "Enter a CRL and Root certificate publishing URL: "; read CACRLURL
 
 if [ -z "$CANAME" ]; then
-    echo "CA common name must be specified."
-    exit 1
+    # Use CN as CANAME.
+    CANAME="$CN"
 fi
 
 if [ -z "$CN" ]; then
@@ -57,13 +57,14 @@ if [ -z "$CACRLURL" ]; then
     exit 1
 fi
 
-CANAME_L=$(echo $CANAME | tr '[:upper:][:blank:]' '[:lower:]_')
+# Normalize the CANAME
+CANAME=$(echo "$CANAME" | tr '[:upper:][:punct:][:blank:]' '[:lower:]__')
 
 # Write shell environment setup file.
 cat > "$CA_ROOT/env.sh" <<EOF
 export CA_ROOT=$CA_ROOT
-export CA_SHORTNAME=$CANAME_L
-export CA_CONF=\$CA_ROOT/ca.conf
+export CA_SHORTNAME=$CANAME
+export CA_CONF=\$CA_ROOT/$CANAME.conf
 export CA_CRT_YRS=10
 export CA_SRV_YRS=2
 export CA_CLI_YRS=1
@@ -73,7 +74,7 @@ export PATH=\$CA_SCRIPTS:\$PATH
 EOF
 
 # Source variable
-source $CA_ROOT/env.sh
+. $CA_ROOT/env.sh
 
 cat > $CA_CONF <<EOF
 HOME = $CA_ROOT
@@ -87,9 +88,9 @@ dir = $CA_ROOT
 database = \$dir/index.txt
 new_certs_dir = \$dir/newcerts
 
-certificate = \$dir/certs/ca.pem
+certificate = \$dir/certs/$CANAME.pem
 serial = \$dir/serial
-private_key = \$dir/private/ca-key.pem
+private_key = \$dir/private/$CANAME-key.pem
 RANDFILE = \$dir/private/.rnd
 
 default_days = 365
@@ -136,8 +137,8 @@ extendedKeyUsage = serverAuth,clientAuth
 nsCertType = server,client
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always
-authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME_L.crt
-crlDistributionPoints = URI:$CACRLURL/$CANAME_L.crl
+authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME.crt
+crlDistributionPoints = URI:$CACRLURL/$CANAME.crl
 
 [ v3_client ]
 basicConstraints = CA:FALSE
@@ -146,8 +147,8 @@ extendedKeyUsage = clientAuth,emailProtection,codeSigning
 nsCertType = email,client,objsign
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always
-authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME_L.crt
-crlDistributionPoints = URI:$CACRLURL/$CANAME_L.crl
+authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME.crt
+crlDistributionPoints = URI:$CACRLURL/$CANAME.crl
 
 [ req_dn ]
 CN = $CN
@@ -179,13 +180,13 @@ mkdir -m 755 "$CA_ROOT/newcerts" "$CA_ROOT/certs" "$CA_ROOT/requests" "$CA_ROOT/
 mkdir -m 750 "$CA_ROOT/private"
 
 # Generate a key
-openssl genrsa -out "$CA_ROOT/private/ca-key.pem" 4096
+openssl genrsa -out "$CA_ROOT/private/$CANAME-key.pem" 4096
 
 # Generate a request
-openssl req -new -out "$CA_ROOT/ca.req" -key "$CA_ROOT/private/ca-key.pem" -config $CA_CONF
+openssl req -new -out "$CA_ROOT/$CANAME.req" -key "$CA_ROOT/private/$CANAME-key.pem" -config $CA_CONF
 
 # Create a selfsigned certificate
-openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/ca.req" -signkey "$CA_ROOT/private/ca-key.pem" -out "$CA_ROOT/certs/ca.pem" -extensions v3_ca -extfile $CA_CONF
+openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/$CANAME.req" -signkey "$CA_ROOT/private/$CANAME-key.pem" -out "$CA_ROOT/certs/$CANAME.pem" -extensions v3_ca -extfile $CA_CONF
 
 # Remove request
-rm -f "$CA_ROOT/ca.req"
+rm -f "$CA_ROOT/$CANAME.req"
