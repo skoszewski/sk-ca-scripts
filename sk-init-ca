@@ -24,14 +24,14 @@ do
     fi
 done
 
-# Create a config file
-read -e -p "Enter short CA name: " -i "Example CA" CANAME
-read -e -p "Enter a CA common name: " -i "Example CA" CN
-read -e -p "Enter an organization name: " ORG
-read -e -p "Enter an organization unit name: " OU
-read -e -p "Enter a country code (e.g. PL): " -i "US" CC
-read -e -p "Enter a locality (City name): " -i "NY" LOCALITY
-read -e -p "Enter a CRL and Root certificate publishing URL: " -i "https://example.com" CACRLURL
+# Query information
+echo -n "Enter a CA common name : "; read CN
+echo -n "Enter short CA name (optional) : "; read CANAME
+echo -n "Enter an organization name: "; read ORG
+echo -n "Enter an organization unit name: "; read OU
+echo -n "Enter a country code (e.g. PL): "; read CC
+echo -n "Enter a locality (City name): "; read LOCALITY
+echo -n "Enter a CRL and Root certificate publishing URL: "; read CACRLURL
 
 if [ -z "$CANAME" ]; then
     echo "CA common name must be specified."
