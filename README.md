@@ -23,12 +23,6 @@ Slawomir Koszewski
 
 ## Create a CA
 
-Make a folder for CA structure.
-
-```
-mkdir example-ca
-```
-
 Find a place to store scripts. Download the **tar** file and unpack them.
 
 Initialize the folder structure with the following command:
@@ -36,6 +30,8 @@ Initialize the folder structure with the following command:
 ```
 <path to the scripts folder>/sk-init-ca <path to the CA folder>
 ```
+
+> NOTE: You can specify en empty folder or a non-existing location. The new folder will be created.
 
 Source the shell enviroment variables:
 
