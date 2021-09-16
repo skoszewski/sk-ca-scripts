@@ -4,10 +4,19 @@
 # Check, if the root folder has been specified.
 CA_ROOT=$1
 
-if [ ! -d "$CA_ROOT" ]
+# Check, if the path already exists.
+if [ -e "$CA_ROOT" -a ! -d "$CA_ROOT" ]
 then
+    # There is a file at the path specified.
     echo "Usage: $0 {CA_ROOT}"
     exit 1
+fi
+
+# Check if the path does not exist.
+if [ ! -e "$CA_ROOT" ]
+then
+    # Create an empty directory
+    mkdir -p "$CA_ROOT"
 fi
 
 # Convert CA_ROOT to absolute path.
