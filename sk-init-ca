@@ -153,19 +153,19 @@ crlDistributionPoints = URI:$CACRLURL/$CANAME_L.crl
 CN = $CN
 EOF
 
-if [ ! -z $CC ]; then
+if [ ! -z "$CC" ]; then
     echo "C = $CC" >> $CA_CONF
 fi
 
-if [ ! -z $LOCALITY ]; then
+if [ ! -z "$LOCALITY" ]; then
     echo "L = $LOCALITY" >> $CA_CONF
 fi
 
-if [ ! -z $ORG ]; then
+if [ ! -z "$ORG" ]; then
     echo "O = $ORG" >> $CA_CONF
 fi
 
-if [ ! -z $OU ]; then
+if [ ! -z "$OU" ]; then
     echo "OU = $OU" >> $CA_CONF
 fi
 
