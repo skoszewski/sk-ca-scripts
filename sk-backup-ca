@@ -22,10 +22,16 @@ then
     openssl rand -base64 2048 >> $PASSFILE
 fi
 
-BACKUP_FILE="$CA_ROOT/backups/$CA_SHORTNAME-$(date +%Y-%m-%d).gpg"
+FILENAME="$CA_SHORTNAME-$(date +%Y-%m-%d).gpg"
+BACKUP_FILE="$CA_ROOT/backups/$FILENAME"
 
-# Backup CA files excluding the backup directory itself and the encryption key.
-# NOTE: Remember to backup the key in the same place.
-(cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
+if [ ! -f $BACKUP_FILE ]
+then
+    # Backup CA files excluding the backup directory itself and the encryption key.
+    # NOTE: Remember to backup the key in the same place.
+    (cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
 
-echo "The backup file has been created: $BACKUP_FILE."
+    echo "The backup file has been created: $FILENAME."
+else
+    echo "The backup file $FILENAME already exists."
+fi
