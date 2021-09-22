@@ -39,13 +39,13 @@ read -p "Do you want to provide you own export password for the PCKS#12 file? " 
 
 if echo $ans | grep -q '^[yY]'
 then
-    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -certfile "$CA_ROOT/certs/ca.pem" -name "$CONFNAME" -out $P12FILE
+    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -certfile "$CA_ROOT/certs/$CA_SHORTNAME.pem" -name "$CONFNAME" -out $P12FILE
 else
     if [ -f $PASSFILE ]; then rm -f $PASSFILE; fi
     touch $PASSFILE
     chmod 0600 $PASSFILE
     openssl rand -base64 12 >> $PASSFILE
-    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -passout file:$PASSFILE -certfile "$CA_ROOT/certs/ca.pem" -name "$CONFNAME" -out $P12FILE
+    openssl pkcs12 -export -in $CERTFILE -inkey $KEYFILE -passout file:$PASSFILE -certfile "$CA_ROOT/certs/$CA_SHORTNAME.pem" -name "$CONFNAME" -out $P12FILE
 
     echo "The password for \"$P12FILE\" is \"$(cat $PASSFILE)\"."
     echo ""

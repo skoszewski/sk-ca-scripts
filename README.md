@@ -43,7 +43,7 @@ The `env.sh` file will set up the required shell variables and modify your `PATH
 
 The CA will hold private keys in `private` folder and certificates in `certs`. You will also be able to find automatically generated passwords for PKCS#12 files in the `private` folder. These are clear text files only protected by file system permissions. PKCS#12 files will also be stored in `certs` folder. These files are encrypted and do not need to be protected by filesystem.
 
-> WARNING: Do not modify files `index.txt`, `serial`, `certs/ca.pem`, `private/ca-key.pem` and `newcerts` folder by hand unless you know what you are doing.
+> WARNING: Do not modify files `index.txt`, `serial`, `private/ca-key.pem` and `newcerts` folder by hand unless you know what you are doing.
 
 ## Easy certificate issuance
 
