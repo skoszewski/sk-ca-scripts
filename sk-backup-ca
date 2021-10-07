@@ -22,16 +22,31 @@ then
     openssl rand -base64 2048 >> $PASSFILE
 fi
 
-FILENAME="$CA_SHORTNAME-$(date +%Y-%m-%d).gpg"
+BACKUP_INDEX=1
+FILENAME="$CA_SHORTNAME-$(date +%Y-%m-%d)-$(printf '%3.3d' $BACKUP_INDEX).gpg"
 BACKUP_FILE="$CA_ROOT/backups/$FILENAME"
 
-if [ ! -f $BACKUP_FILE ]
-then
-    # Backup CA files excluding the backup directory itself and the encryption key.
-    # NOTE: Remember to backup the key in the same place.
-    (cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
+# Check if the file already exists.
+# If yes, add an index to the filename and try again until the index reaches 1000.
+while [ -f $BACKUP_FILE ]
+do
+    BACKUP_INDEX=$(($BACKUP_INDEX + 1))
+    if [ $BACKUP_INDEX -gt 1000 ]
+    then
+        echo "ERROR: Backup index reached the end of its allowed range."
+        exit 1
+    fi
+    FILENAME="$CA_SHORTNAME-$(date +%Y-%m-%d)-$(printf '%3.3d' $BACKUP_INDEX).gpg"
+    BACKUP_FILE="$CA_ROOT/backups/$FILENAME"
+done
 
-    echo "The backup file has been created: $FILENAME."
+# Backup CA files excluding the backup directory itself and the encryption key.
+# NOTE: Remember to backup the key in the same place.
+if (cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
+then
+    # Out the backup filename if successful.
+    echo "$BACKUP_FILE"
 else
-    echo "The backup file $FILENAME already exists."
+    # Signal an error
+    exit 1
 fi
