@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+usage() {
+    echo -e "Usage:\t$0 <configuration name> <server_name> [-k <tls_key_path>] [-p <server_port>] [-t]"
+    echo
+    echo -e "\tConfiguration name and the servername are mandatory."
+    echo -e "\tServer port and force tcp (-t) are optional. UDP 1194 is the default."
+}
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "ERROR: CA shell environment variables not set."
+    exit 1
+fi
+
+CONFNAME=$1
+shift
+
+if [ -z "$CONFNAME" ]
+then
+	usage
+	exit 1
+fi
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+OVPNFILE="$CA_ROOT/private/$CONFNAME.ovpn"
+
+if [ ! -f $CONFFILE ]
+then
+	echo "ERROR: Configuration file does not exist."
+	usage
+	exit 1
+fi
+
+# Parse additional arguments
+SERVER_NAME="$1"
+shift
+
+if [ -z "$SERVER_NAME" ]
+then
+	usage
+	exit 1
+fi
+
+# Defaults
+SERVER_PORT="1194"
+SERVER_PROTOCOL="udp"
+
+while getopts "k:p:t" opt
+do
+	case "$opt" in
+		k)
+			if [ -f "$OPTARG" ]
+			then
+				TLS_KEY=$(cat "$OPTARG")
+			else
+				echo "ERROR: Specified TLS key does not exist."
+				usage
+				exit 1
+			fi
+			;;
+
+		p)
+			if [ ! -z "$OPTARG" ]
+			then
+				SERVER_PORT="$OPTARG"
+			else
+				echo "ERROR: Invalid port value or not specified."
+				usage
+				exit 1
+			fi
+			;;
+		t)
+			SERVER_PROTOCOL="tcp"
+			;;
+	esac
+done
+
+CA_CERT=$(openssl x509 -outform pem -inform pem -in "${CA_ROOT}/certs/${CA_SHORTNAME}.pem")
+CERT=$(openssl x509 -outform pem -inform pem -in "${CA_ROOT}/certs/${CONFNAME}.pem")
+KEY=$(openssl rsa -in "${CA_ROOT}/private/${CONFNAME}-key.pem" 2>/dev/null)
+
+# Pre-create the file
+touch "$OVPNFILE"
+chmod 0600 "$OVPNFILE"
+
+# Output OpenVPN config
+cat >> "$OVPNFILE" <<EOF
+client
+dev tun
+proto $SERVER_PROTOCOL
+remote $SERVER_NAME $SERVER_PORT
+data-ciphers AES-256-GCM:AES-256-CBC
+auth SHA256
+float
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+verb 3
+
+<ca>
+$CA_CERT
+</ca>
+
+<cert>
+$CERT
+</cert>
+
+<key>
+$KEY
+</key>
+
+remote-cert-eku "TLS Web Server Authentication"
+EOF
+
+# Optionally add TLS key
+if [ ! -z "$TLS_KEY" ]
+then
+	cat >> "$OVPNFILE" <<EOF
+
+<tls-auth>
+$TLS_KEY
+</tls-auth>
+
+key-direction 1
+EOF
+fi
+
+echo -e "OpenVPN configuration file created: \"$OVPNFILE.\""
