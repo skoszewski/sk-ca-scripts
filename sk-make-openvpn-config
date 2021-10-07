@@ -132,4 +132,4 @@ key-direction 1
 EOF
 fi
 
-echo -e "OpenVPN configuration file created: \"$OVPNFILE.\""
+echo -e "OpenVPN configuration file created: \"$OVPNFILE\"."
