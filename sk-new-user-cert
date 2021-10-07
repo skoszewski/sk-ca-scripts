@@ -8,17 +8,17 @@ then
     exit 1
 fi
 
-if ! $CA_SCRIPTS/sk-make-user-conf $*
+if ! $CA_SCRIPTS/sk-make-user-conf "$1" "$2" "$3"
 then
     exit 1
 fi
 
-if ! $CA_SCRIPTS/sk-make-req $1
+if ! $CA_SCRIPTS/sk-make-req "$1"
 then
     exit 1
 fi
 
-if ! $CA_SCRIPTS/sk-sign-req $1
+if ! $CA_SCRIPTS/sk-sign-req "$1" "client"
 then
     exit 1
 fi
