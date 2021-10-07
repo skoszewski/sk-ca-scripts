@@ -8,32 +8,32 @@ usage() {
     echo -e "\tDefine and export STORAGE_ACCOUNT, CONTAINER and SAS_TOKEN variables."
 }
 
-BACKUP_FILE=$1
+BACKUP_FILE="$1"
+shift
 
-if [ -z $BACKUP_FILE ] || [ ! -f $BACKUP_FILE ]
+if [ -z "$BACKUP_FILE" ] || [ ! -f "$BACKUP_FILE" ]
 then
     usage
     exit 1
 fi
 
-FILENAME=$(basename $BACKUP_FILE)
-shift
+FILENAME=$(basename "$BACKUP_FILE")
 
 # Check if the account information has been provided in the command line.
 if [ "$1" -a "$2" -a "$3" ]
 then
-    RESOURCE_GROUP=$1
-    STORAGE_ACCOUNT=$2
-    CONTAINER=$3
+    RESOURCE_GROUP="$1"
+    STORAGE_ACCOUNT="$2"
+    CONTAINER="$3"
 
     # Get signing key
-    ACCOUNT_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP --account-name $STORAGE_ACCOUNT --query "[?keyName=='key1'].[value]" -o tsv)
+    ACCOUNT_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" --account-name "$STORAGE_ACCOUNT" --query "[?keyName=='key1'].[value]" -o tsv)
 
     # Calculate and format expiry time
     EXPIRY_TIME=$(date -u -d "15 minute" '+%Y-%m-%dT%H:%MZ')
 
     # Get full file manipulation Uri. Request CREATE permission only, it will prevent overwriting an existing blob.
-    URI=$(az storage blob generate-sas --account-name $STORAGE_ACCOUNT --account-key $ACCOUNT_KEY --container-name $CONTAINER --name $FILENAME --permissions c --expiry $EXPIRY_TIME --full-uri --output tsv)
+    URI=$(az storage blob generate-sas --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY" --container-name "$CONTAINER" --name "$FILENAME" --permissions c --expiry "$EXPIRY_TIME" --full-uri --output tsv)
 elif [ "$SAS_TOKEN" -a "$STORAGE_ACCOUNT" -a "$CONTAINER" ]
 then
     # Construct URI
@@ -44,4 +44,4 @@ else
 fi
 
 # Upload the file.
-curl -# -X PUT -T $BACKUP_FILE -H "x-ms-blob-type: BlockBlob" $URI
+curl -s -X PUT -T "$BACKUP_FILE" -H "x-ms-blob-type: BlockBlob" "$URI"
