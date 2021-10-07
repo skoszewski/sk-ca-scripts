@@ -82,6 +82,9 @@ CA_CERT=$(openssl x509 -outform pem -inform pem -in "${CA_ROOT}/certs/${CA_SHORT
 CERT=$(openssl x509 -outform pem -inform pem -in "${CA_ROOT}/certs/${CONFNAME}.pem")
 KEY=$(openssl rsa -in "${CA_ROOT}/private/${CONFNAME}-key.pem" 2>/dev/null)
 
+# Remove existing configuraion
+rm -f "$OVPNFILE"
+
 # Pre-create the file
 touch "$OVPNFILE"
 chmod 0600 "$OVPNFILE"
