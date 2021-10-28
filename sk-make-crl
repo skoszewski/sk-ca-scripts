@@ -8,4 +8,15 @@ then
     exit 1
 fi
 
-openssl ca -gencrl -config $CA_CONF -out "$CA_ROOT/crl/crl-$(date +%Y-%m-%d).pem"
+# openssl ca -gencrl -config $CA_CONF -out "$CA_ROOT/crl/crl-$(date +%Y-%m-%d).pem"
+
+CRL="$CA_ROOT/${CA_SHORTNAME}.crl"
+OLDCRL="$CA_ROOT/${CA_SHORTNAME}-old.crl"
+
+if [ -f "$CRL" ]
+then
+	rm -f "$OLDCRL"
+	mv "$CRL" "$OLDCRL"
+fi
+
+openssl ca -gencrl -config "$CA_CONF" -out "$CRL"
