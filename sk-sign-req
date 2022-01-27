@@ -8,17 +8,27 @@ then
     exit 1
 fi
 
-CONFNAME=$1
-if [ -z "$CONFNAME" ]
+if [ -z "$1" ]
 then
-	echo "ERROR: Configuration name not provided."
+	echo "ERROR: The configuration name or a custom certificate request file not provided."
 	exit 1
 fi
 
-REQFILE="$CA_ROOT/requests/$CONFNAME.pem"
+REQFILE="$1"
 
-if [ ! -f "$REQFILE" ]; then
-	echo "ERROR: Request file does not exist."
+if [ ! -f "$REQFILE" ]
+	# The first argument is not a filename, maybe it is the configuration name?
+	REQFILE="$CA_ROOT/requests/$1.pem"
+	
+	if [ ! -f "$REQFILE"  ]
+		echo "ERROR: The certificate request does not exist."
+		exit 1
+	fi
+fi
+
+if ! openssl req -noout -in $REQFILE 2>&-
+then
+	echo "ERROR: The certificate request file is invalid."
 	exit 1
 fi
 
