@@ -64,8 +64,7 @@ then
 		rm -f $REQFILE
 
 		# Print information about the new certificate
-		echo "The certificate for $CONFNAME has been issued."
-		echo "It can be found in file: $CERTFILE."
+		echo "The certificate has been issued and can be found in the file: $CERTFILE."
 		# Print the fingerprint
 		openssl x509 -noout -fingerprint -in $CERTFILE
 	fi
