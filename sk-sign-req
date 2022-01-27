@@ -17,10 +17,12 @@ fi
 REQFILE="$1"
 
 if [ ! -f "$REQFILE" ]
+then
 	# The first argument is not a filename, maybe it is the configuration name?
 	REQFILE="$CA_ROOT/requests/$1.pem"
 	
 	if [ ! -f "$REQFILE"  ]
+	then
 		echo "ERROR: The certificate request does not exist."
 		exit 1
 	fi
