@@ -20,12 +20,18 @@ if [ ! -f "$REQFILE" ]
 then
 	# The first argument is not a filename, maybe it is the configuration name?
 	REQFILE="$CA_ROOT/requests/$1.pem"
+	CERTFILE="$CA_ROOT/certs/$1.pem"
 	
 	if [ ! -f "$REQFILE"  ]
 	then
 		echo "ERROR: The certificate request does not exist."
 		exit 1
 	fi
+else
+	# put the certificate along side the request file, but change the extension to '.crt'.
+	d=$(dirname "$REQFILE")
+	f=$(basename -- "$REQFILE")
+	CERTFILE="$d/${f%.*}.crt"
 fi
 
 if ! openssl req -noout -in $REQFILE 2>&-
@@ -41,8 +47,6 @@ case $CONFSECT in
 	client) EXTSECT=v3_client ;;
 	*) EXTSECT=v3_server ;;
 esac
-
-CERTFILE="$CA_ROOT/certs/$CONFNAME.pem"
 
 # Remove the old certificate, if exists
 if [ -f $CERTFILE ]
