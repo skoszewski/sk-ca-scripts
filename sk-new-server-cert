@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-if ! $CA_SCRIPTS/sk-make-conf $*
+if ! $CA_SCRIPTS/sk-make-server-conf $*
 then
     exit 1
 fi

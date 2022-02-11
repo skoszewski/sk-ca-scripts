@@ -45,6 +45,7 @@ CONFSECT=$2
 case $CONFSECT in
 	server) EXTSECT=v3_server ;;
 	client) EXTSECT=v3_client ;;
+	subca) EXTSECT=v3_subca ;;
 	*) EXTSECT=v3_server ;;
 esac
 

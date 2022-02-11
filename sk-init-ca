@@ -12,6 +12,9 @@ then
     exit 1
 fi
 
+shift
+SUBCA="$1"
+
 # Check if the path does not exist.
 if [ ! -e "$CA_ROOT" ]
 then
@@ -95,6 +98,10 @@ RANDFILE = \$dir/private/.rnd
 
 default_days = 365
 default_crl_days = 30
+
+crl = \$dir/$CA_SHORTNAME.crl
+crl_extensions = crl_ext
+
 # Default
 default_md = sha256
 # For compatibility set to
@@ -128,7 +135,16 @@ prompt = no
 [ v3_ca ]
 basicConstraints = critical,CA:TRUE
 subjectKeyIdentifier = hash
-keyUsage = critical,keyCertSign,cRLSign
+keyUsage=critical,digitalSignature,cRLSign,keyCertSign
+authorityKeyIdentifier=keyid:always,issuer
+
+[ v3_subca ]
+basicConstraints=critical,CA:true,pathlen:0
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+keyUsage=critical,digitalSignature,cRLSign,keyCertSign
+authorityInfoAccess = @v3_aia
+crlDistributionPoints = @v3_crl
 
 [ v3_server ]
 basicConstraints = CA:FALSE
@@ -137,8 +153,8 @@ extendedKeyUsage = serverAuth,clientAuth
 nsCertType = server,client
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always
-authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME.crt
-crlDistributionPoints = URI:$CACRLURL/$CANAME.crl
+authorityInfoAccess = @v3_aia
+crlDistributionPoints = @v3_crl
 
 [ v3_client ]
 basicConstraints = CA:FALSE
@@ -147,8 +163,18 @@ extendedKeyUsage = clientAuth,emailProtection,codeSigning
 nsCertType = email,client,objsign
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always
-authorityInfoAccess = caIssuers;URI:$CACRLURL/$CANAME.crt
-crlDistributionPoints = URI:$CACRLURL/$CANAME.crl
+authorityInfoAccess = @v3_aia
+crlDistributionPoints = @v3_crl
+
+[ v3_aia ]
+caIssuers;URI=$CACRLURL/$CANAME.crt
+
+[ v3_crl ]
+URI=$CACRLURL/$CANAME.crl
+
+[ crl_ext ]
+authorityKeyIdentifier=keyid:always
+issuerAltName=issuer:copy
 
 [ req_dn ]
 CN = $CN
@@ -185,8 +211,16 @@ openssl genrsa -out "$CA_ROOT/private/$CANAME-key.pem" 4096
 # Generate a request
 openssl req -new -out "$CA_ROOT/$CANAME.req" -key "$CA_ROOT/private/$CANAME-key.pem" -config $CA_CONF
 
-# Create a selfsigned certificate
-openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/$CANAME.req" -signkey "$CA_ROOT/private/$CANAME-key.pem" -out "$CA_ROOT/certs/$CANAME.pem" -extensions v3_ca -extfile $CA_CONF
+if [ "$SUBCA" = "--subca" -o "$SUBCA" = "-s" ]
+then
+    # Print the request and exit.
+    echo "The request has been generated. You can find it in $CA_ROOT/$CANAME.req. Send that request to the CA for signing."
+    echo
+    cat $CA_ROOT/$CANAME.req
+else
+    # Create a self-signed certificate
+    openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/$CANAME.req" -signkey "$CA_ROOT/private/$CANAME-key.pem" -out "$CA_ROOT/certs/$CANAME.pem" -extensions v3_ca -extfile $CA_CONF
 
-# Remove request
-rm -f "$CA_ROOT/$CANAME.req"
+    # Remove request
+    rm -f "$CA_ROOT/$CANAME.req"
+fi
