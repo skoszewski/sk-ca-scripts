@@ -10,8 +10,8 @@ fi
 
 # openssl ca -gencrl -config $CA_CONF -out "$CA_ROOT/crl/crl-$(date +%Y-%m-%d).pem"
 
-CRL="$CA_ROOT/${CA_SHORTNAME}.crl"
-OLDCRL="$CA_ROOT/${CA_SHORTNAME}-old.crl"
+CRL="$CA_ROOT/crl/${CA_SHORTNAME}.crl"
+OLDCRL="$CA_ROOT/crl/${CA_SHORTNAME}-old.crl"
 
 if [ -f "$CRL" ]
 then
@@ -19,4 +19,8 @@ then
 	mv "$CRL" "$OLDCRL"
 fi
 
+# Write .rnd file (if supported)
+openssl rand -writerand $CA_ROOT/.rnd 2>&1 1>&-
+
+# Generate the CRL
 openssl ca -gencrl -config "$CA_CONF" -out "$CRL"

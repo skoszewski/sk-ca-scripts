@@ -199,28 +199,9 @@ fi
 # Add a blank line
 echo >> $CA_CONF
 
-# Create a new index, serial and subdirectories.
-touch "$CA_ROOT/index.txt"
-echo 01 > "$CA_ROOT/serial"
-mkdir -m 755 "$CA_ROOT/newcerts" "$CA_ROOT/certs" "$CA_ROOT/requests" "$CA_ROOT/configs" "$CA_ROOT/crl"
-mkdir -m 750 "$CA_ROOT/private"
-
-# Generate a key
-openssl genrsa -out "$CA_ROOT/private/$CANAME-key.pem" 4096
-
-# Generate a request
-openssl req -new -out "$CA_ROOT/$CANAME.req" -key "$CA_ROOT/private/$CANAME-key.pem" -config $CA_CONF
-
-if [ "$SUBCA" = "--subca" -o "$SUBCA" = "-s" ]
-then
-    # Print the request and exit.
-    echo "The request has been generated. You can find it in $CA_ROOT/$CANAME.req. Send that request to the CA for signing."
-    echo
-    cat $CA_ROOT/$CANAME.req
-else
-    # Create a self-signed certificate
-    openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/$CANAME.req" -signkey "$CA_ROOT/private/$CANAME-key.pem" -out "$CA_ROOT/certs/$CANAME.pem" -extensions v3_ca -extfile $CA_CONF
-
-    # Remove request
-    rm -f "$CA_ROOT/$CANAME.req"
-fi
+echo "The CA has been initialized. Please review the $CA_CONF file before proceeding."
+echo "Source the environment variables using:"
+echo
+echo ". $CA_ROOT/env.sh"
+echo
+echo "and run 'sk-make-ca' script."

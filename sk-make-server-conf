@@ -16,6 +16,10 @@ if [ -z "$CONFNAME" ]; then
 	exit 1
 fi
 
+if [ -z "$DNSNAME" ]; then
+	DNSNAME="$CONFNAME"
+fi
+
 CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
 
 shift

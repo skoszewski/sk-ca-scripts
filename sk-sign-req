@@ -28,10 +28,8 @@ then
 		exit 1
 	fi
 else
-	# put the certificate along side the request file, but change the extension to '.crt'.
-	d=$(dirname "$REQFILE")
 	f=$(basename -- "$REQFILE")
-	CERTFILE="$d/${f%.*}.crt"
+	CERTFILE="$CA_ROOT/certs/${f%.*}.pem"
 fi
 
 if ! openssl req -noout -in $REQFILE 2>&-
@@ -46,7 +44,10 @@ case $CONFSECT in
 	server) EXTSECT=v3_server ;;
 	client) EXTSECT=v3_client ;;
 	subca) EXTSECT=v3_subca ;;
-	*) EXTSECT=v3_server ;;
+	*)
+		echo "ERROR: Certificate type not selected. Possible values: 'server', 'client' and 'subca'."
+		exit 1
+	;;
 esac
 
 # Remove the old certificate, if exists

@@ -27,6 +27,9 @@ KEYFILE="$CA_ROOT/private/${CONFNAME}-key.pem"
 REQFILE="$CA_ROOT/requests/${CONFNAME}.pem"
 CERTFILE="$CA_ROOT/certs/${CONFNAME}.pem"
 
+# Write .rnd file (if supported)
+openssl rand -writerand $CA_ROOT/.rnd 2>&1 1>&-
+
 if ! openssl genrsa -out $KEYFILE 2048
 then
 	echo "ERROR: Something went wrong, key not created."
