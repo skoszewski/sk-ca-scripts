@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+CONFNAME=$1
+CN=$2
+
+if [ -z "$CONFNAME" ]; then
+	echo "ERROR: Configuration file not provided."
+	exit 1
+fi
+
+CONFFILE="$CA_ROOT/configs/$CONFNAME.conf"
+
+shift
+shift
+
+# Compose main sections
+cat > $CONFFILE <<EOF
+[ req ]
+distinguished_name = req_dn
+prompt = no
+
+[ req_dn ]
+CN                 = $CN
+#OU                 = Organizational Unit Name
+#O                  = Optional organization name
+#L                  = Optional city name
+#ST                 = State or Province
+#C                  = Optional country code, e.g. PL
+EOF
+
+echo "Configuration file has been created: \"$CONFFILE\"."
+
+echo "============================================================"
+cat $CONFFILE
+echo "============================================================"
+
+echo "Edit it to change certificate attributes."
