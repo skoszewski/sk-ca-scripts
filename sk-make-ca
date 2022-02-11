@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# vim: ts=4:sw=4:noet:ai
+
+# Check for CA_ROOT variable
+if [ -z "$CA_ROOT" ]
+then
+    echo "Please source the CA shell environment from the \"env.sh\" file."
+    exit 1
+fi
+
+# Create a new index, serial and subdirectories.
+touch "$CA_ROOT/index.txt"
+echo 01 > "$CA_ROOT/serial"
+mkdir -m 755 "$CA_ROOT/newcerts" "$CA_ROOT/certs" "$CA_ROOT/requests" "$CA_ROOT/configs" "$CA_ROOT/crl"
+mkdir -m 750 "$CA_ROOT/private"
+
+# Generate a key
+openssl genrsa -out "$CA_ROOT/private/$CA_SHORTNAME-key.pem" 4096
+
+# Write .rnd file (if supported)
+openssl rand -writerand $CA_ROOT/.rnd 2>&1 1>&-
+
+# Generate a request
+openssl req -new -out "$CA_ROOT/requests/$CA_SHORTNAME.req" -key "$CA_ROOT/private/$CA_SHORTNAME-key.pem" -config $CA_CONF
+
+if [ "$SUBCA" = "--subca" -o "$SUBCA" = "-s" ]
+then
+    # Print the request and exit.
+    echo "The request has been generated. You can find it in $CA_ROOT/requests/$CA_SHORTNAME.req. Send that request to the CA for signing."
+    echo
+    openssl req -in $CA_ROOT/requests/$CA_SHORTNAME.req
+else
+    # Create a self-signed certificate
+    openssl x509 -req -sha256 -days $(($CA_CRT_YRS * 365)) -in "$CA_ROOT/requests/$CA_SHORTNAME.req" -signkey "$CA_ROOT/private/$CA_SHORTNAME-key.pem" -out "$CA_ROOT/certs/$CA_SHORTNAME.pem" -extensions v3_ca -extfile $CA_CONF
+
+    # Remove request
+    rm -f "$CA_ROOT/requests/$CA_SHORTNAME.req"
+fi
