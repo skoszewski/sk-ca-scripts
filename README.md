@@ -33,6 +33,8 @@ Initialize the folder structure with the following command:
 
 > NOTE: You can specify en empty folder or a non-existing location. The new folder will be created.
 
+Review the created `openssl` configuration file and modify it based on your requirements.
+
 Source the shell enviroment variables:
 
 ```
@@ -41,16 +43,20 @@ Source the shell enviroment variables:
 
 The `env.sh` file will set up the required shell variables and modify your `PATH`. You will no longer need to use full path to run scripts.
 
+Run the `sk-make-ca` script to finalize certificate authority file structure creation.
+
+Use `-s` or `--subca` parameter to `sk-make-ca` to create a subordinate CA instead of root CA. The certificate signing request will be created instead of self-signed certificate. Send the request to the signing Certificate Authority and place the issued certificate in `certs` directory. Keep the same name as the request file has. Replace the `.req` suffix with the `.pem`.
+
 The CA will hold private keys in `private` folder and certificates in `certs`. You will also be able to find automatically generated passwords for PKCS#12 files in the `private` folder. These are clear text files only protected by file system permissions. PKCS#12 files will also be stored in `certs` folder. These files are encrypted and do not need to be protected by filesystem.
 
-> WARNING: Do not modify files `index.txt`, `serial`, `private/ca-key.pem` and `newcerts` folder by hand unless you know what you are doing.
+> WARNING: Do not modify files `index.txt`, `serial`, `private/<ca_name>-key.pem` and `newcerts` folder by hand unless you know what you are doing.
 
 ## Easy certificate issuance
 
 Create a server certificate:
 
 ```
-sk-new-cert <name> <dns name> [<san name>] [<san name>] [<san name>] ...
+sk-new-server-cert <name> <dns name> [<san name>] [<san name>] [<san name>] ...
 ```
 
 * `name` - the configuration name - keep it simple and use only letters and dashes.
@@ -69,9 +75,31 @@ sk-new-user-cert <name> <full name> <email>
 
 The server certificate will be usable as both server and client authentication. It may be used as a web or mail server certificate as well as router certificate (VPN). The client certificate can be used as client identification, e-mail signing or code signing certificate.
 
-If you need more refined certificate type, you have to edit the `ca.conf` file.
+If you need more refined certificate type, you have to edit the `<ca_name>.conf` file.
+
+## Signing certificate requests
+
+You can use `sk-sign-req` script to directly sign requests created outside of the CA.
+
+The script takes two arguments:
+
+```
+sk-sign-req <configuration_name> <server|client|subca>
+```
+
+or
+
+```
+sk-sign-req <path_to_the_request_file> <server|client|subca>
+```
+
+> NOTE: The request file must be in the PEM format.
 
 ## More advanced operations
+
+The `sk-make-conf` script create a generic configuration file. Edit it and create a signing request with the `sk-make-req` and then sign with `sk-sign-req`.
+
+Scripts `sk-make-server-conf` and `sk-make-user-conf` create specialized configurations with additional attributes.
 
 Certificates may be revoked using `sk-revoke-cert` script.
 

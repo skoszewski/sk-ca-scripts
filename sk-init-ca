@@ -12,9 +12,6 @@ then
     exit 1
 fi
 
-shift
-SUBCA="$1"
-
 # Check if the path does not exist.
 if [ ! -e "$CA_ROOT" ]
 then
