@@ -36,6 +36,19 @@ then
     URI=$(az storage blob generate-sas --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY" --container-name "$CONTAINER" --name "$FILENAME" --permissions c --expiry "$EXPIRY_TIME" --full-uri --output tsv)
 elif [ "$SAS_TOKEN" -a "$STORAGE_ACCOUNT" -a "$CONTAINER" ]
 then
+    # Generate the SAS_TOKEN either directly or using a policy
+    #
+    # Define required environment variables:
+    # RESOURCE_GROUP="resource_group_name"
+    # STORAGE_ACCOUNT="storage_account_name"
+    # CONTAINER="containter_name"
+    # 
+    # Acquire one of the storage account keys:
+    # az storage account keys list --resource-group "$RESOURCE_GROUP" --account-name "$STORAGE_ACCOUNT" --query "[?keyName=='key1'].[value]" -o tsv
+    #
+    # Direct token generation:
+    # az storage blob generate-sas --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY" --container-name "$CONTAINER" --name "$FILENAME" --permissions c --expiry "$EXPIRY_TIME"
+    #
     # Construct URI
     URI="https://$STORAGE_ACCOUNT.blob.core.windows.net/$CONTAINER/$FILENAME?$SAS_TOKEN"
 else
