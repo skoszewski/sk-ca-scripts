@@ -18,7 +18,7 @@ then
     exit 1
 fi
 
-if ! $CA_SCRIPTS/sk-sign-req $1
+if ! $CA_SCRIPTS/sk-sign-req $1 server
 then
     exit 1
 fi
