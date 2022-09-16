@@ -15,11 +15,11 @@ fi
 
 PASSFILE="$CA_ROOT/backup-encryption-key.txt"
 
-if [ ! -f $PASSFILE ]
+if [ ! -f "$PASSFILE" ]
 then
-    touch $PASSFILE
-    chmod 0600 $PASSFILE
-    openssl rand -base64 2048 >> $PASSFILE
+    touch "$PASSFILE"
+    chmod 0600 "$PASSFILE"
+    openssl rand -base64 2048 >> "$PASSFILE"
 fi
 
 BACKUP_INDEX=1
@@ -28,8 +28,9 @@ BACKUP_FILE="$CA_ROOT/backups/$FILENAME"
 
 # Check if the file already exists.
 # If yes, add an index to the filename and try again until the index reaches 1000.
-while [ -f $BACKUP_FILE ]
+while [ -f "$BACKUP_FILE" ]
 do
+    # shellcheck disable=SC2004
     BACKUP_INDEX=$(($BACKUP_INDEX + 1))
     if [ $BACKUP_INDEX -gt 1000 ]
     then
@@ -42,7 +43,7 @@ done
 
 # Backup CA files excluding the backup directory itself and the encryption key.
 # NOTE: Remember to backup the key in the same place.
-if (cd $CA_ROOT; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file $PASSFILE --batch -o $BACKUP_FILE
+if (cd "$CA_ROOT"; tar -c --exclude backups --exclude backup-encryption-key.txt . ) | gpg --symmetric --cipher-algo=AES256 --passphrase-file "$PASSFILE" --batch -o "$BACKUP_FILE"
 then
     # Out the backup filename if successful.
     echo "$BACKUP_FILE"
