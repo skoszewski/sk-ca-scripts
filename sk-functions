@@ -1,0 +1,19 @@
+# Check environment
+check_env() {
+    for v in CA_ROOT CA_SHORTNAME CA_CONF CA_CRT_YRS CA_SRV_YRS CA_CLI_YRS CA_CRL_LIFE CA_SCRIPTS
+    do
+        if test -z "${!v}"
+        then
+            echo "ERROR: Required environment variable is not defined ($v), please source the *.env file."
+            return 1 # FALSE
+        fi
+    done
+
+    if [ "$1" = "-v" ]
+    then
+        echo "Using CA in \"$CA_ROOT\"."
+        echo ""
+    fi
+    
+    return 0 # TRUE
+}
