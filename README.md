@@ -25,6 +25,22 @@ I hope you will find the scripts useful.
 The author,  
 Slawomir Koszewski
 
+## Installation
+
+Download the latest release bundle from [GitHub Page](https://github.com/skoszewski/sk-ca-scripts/).
+
+The following script will download and extract file to the current directory:
+
+```shell
+curl -s -L https://github.com/skoszewski/sk-ca-scripts/archive/refs/tags/v1.2.2.tar.gz | tar -x -v -z -f -
+```
+
+and the following will extract the file to the pre-created directory `/usr/local/share/sk-ca`:
+
+```shell
+curl -s -L https://github.com/skoszewski/sk-ca-scripts/archive/refs/tags/v1.2.2.tar.gz | tar -x -v -z -C /usr/local/share/sk-ca --strip-components=1 -f -
+```
+
 ## Create a CA
 
 Find a place to store scripts. Download the **tar** file and unpack them.
