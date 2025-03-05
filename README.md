@@ -107,6 +107,45 @@ signing or code signing certificate.
 
 If you need more refined certificate type, you have to edit the `<ca_name>.conf` file.
 
+Simplified issuance scripts automatically create a configuration file, a certificate signing request
+and sign the request. If you need more control over the process, follow the guide in the next section.
+
+## Regular certificate creation
+
+Use the `sk-make-conf` script to create a configurationf file:
+
+```
+sk-make-conf <name> <common name>
+```
+
+A file named `<name>.conf` will be created from the template in the `config` subdirectory.
+
+A sample configuration file:
+
+```
+[ req ]
+distinguished_name = req_dn
+prompt = no
+
+[ req_dn ]
+CN                 = test.example.com
+#OU                 = Organizational Unit Name
+#O                  = Optional organization name
+#L                  = Optional city name
+#ST                 = State or Province
+#C                  = Optional country code, e.g. PL
+```
+
+Remove `#` characters to uncomment a line and define certificate attribute.
+Add `[ req_ext ]` section to declare subject alternative names, e.g.:
+
+```
+[ req_exts ]
+subjectAltName = DNS:test.example.com, DNS:www.example.com, IP:192.168.1.1
+```
+
+Use `sk-make-req` scripti
+
 ## Signing certificate requests
 
 You can use `sk-sign-req` script to directly sign requests created outside of the CA.
@@ -125,18 +164,18 @@ sk-sign-req <path_to_the_request_file> <server|client|subca>
 
 > NOTE: The request file must be in the PEM format.
 
-## More advanced operations
-
-The `sk-make-conf` script create a generic configuration file. Edit it and create a signing request with
-the `sk-make-req` and then sign with `sk-sign-req`.
-
-Scripts `sk-make-server-conf` and `sk-make-user-conf` create specialized configurations with additional attributes.
+## Management operations
 
 Certificates may be revoked using `sk-revoke-cert` script.
 
 ```
 sk-revoke-cert <name>
 ```
+
+Create a revocation list using the `sk-make-crl` script. The CRL will be placed in the
+`crl` subdirectory of CA data directory. Upload the CRL to the distribution
+point specified in the CA initialization phase. You can always check what CRL URL is in the
+CA configuration file.
 
 Create a PKCS#12 file.
 
